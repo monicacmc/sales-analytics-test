@@ -1,14 +1,17 @@
 import sqlite3
+
 from sqlite3 import Connection
 
 def create_in_memory_db() -> Connection:
+    """Create an in-memory SQLite database and initialize its schema."""
     conn = sqlite3.connect(":memory:")
+    conn.execute("PRAGMA foreign_keys = ON")
     init_schema(conn)
     return conn
 
 def init_schema(conn: Connection) -> None:
+    """Create the database tables, foreign keys, and indexes."""
     cur = conn.cursor()
-    # create tables (intentionally slightly suboptimal for the exercise)
     cur.executescript(
         """
         CREATE TABLE customers (
@@ -33,6 +36,13 @@ def init_schema(conn: Connection) -> None:
             unit_price REAL NOT NULL,
             FOREIGN KEY (order_id) REFERENCES orders(order_id)
         );
+        
+        CREATE INDEX IF NOT EXISTS idx_orders_customer_id
+            ON orders(customer_id);
+
+        CREATE INDEX IF NOT EXISTS idx_orders_order_date
+            ON orders(order_date);
+            
         """
     )
     conn.commit()
